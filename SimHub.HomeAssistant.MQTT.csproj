@@ -32,34 +32,25 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="GameReaderCommon">
-      <HintPath>Libs\GameReaderCommon.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
     </Reference>
     <Reference Include="ICarsReader">
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\ICarsReader.dll</HintPath>
     </Reference>
-    <Reference Include="InputManagerCS">
-      <HintPath>Libs\InputManagerCS.dll</HintPath>
-      <Private>False</Private>
+    <Reference Include="iRacingSDK">
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\iRacingSDK.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
-      <HintPath>Libs\log4net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="MahApps.Metro">
-      <HintPath>Libs\MahApps.Metro.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\log4net.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="SimHub.Logging">
-      <HintPath>Libs\SimHub.Logging.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\SimHub.Logging.dll</HintPath>
     </Reference>
     <Reference Include="SimHub.Plugins">
-      <HintPath>Libs\SimHub.Plugins.dll</HintPath>
-      <Private>False</Private>
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\SimHub.Plugins.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -113,7 +104,6 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="iRacingSDK" Version="1.0.1.25" />
     <PackageReference Include="MQTTnet" Version="4.3.3.952" />
     <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -121,14 +111,16 @@
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
     <PackageReference Include="System.Resources.Extensions" Version="9.0.0-preview.2.24128.5" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.5.3" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
 copy /Y "$(TargetDir)$(ProjectName).dll" "c:\Program Files (x86)\SimHub\$(ProjectName).dll"
+copy /Y "$(TargetDir)$(ProjectName).pdb" "c:\Program Files (x86)\SimHub\$(ProjectName).pdb"
 copy /Y "$(TargetDir)MQTTnet.dll" "c:\Program Files (x86)\SimHub\MQTTnet.dll"
-copy /Y "$(TargetDir)MQTTnet.Extensions.ManagedClient.dll" "c:\Program Files (x86)\SimHub\MQTTnet.Extensions.ManagedClient.dll"</PostBuildEvent>
+copy /Y "$(TargetDir)MQTTnet.Extensions.ManagedClient.dll" "c:\Program Files (x86)\SimHub\MQTTnet.Extensions.ManagedClient.dll"
+"C:\Program Files (x86)\SimHub\SimHubWPF.exe"</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
