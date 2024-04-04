@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SimHub.HomeAssistant.MQTT</RootNamespace>
     <AssemblyName>SimHub.HomeAssistant.MQTT</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -34,14 +34,26 @@
     <Reference Include="GameReaderCommon">
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
     </Reference>
+    <Reference Include="GongSolutions.WPF.DragDrop">
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\GongSolutions.WPF.DragDrop.dll</HintPath>
+    </Reference>
     <Reference Include="ICarsReader">
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\ICarsReader.dll</HintPath>
+    </Reference>
+    <Reference Include="InputManagerCS">
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\InputManagerCS.dll</HintPath>
     </Reference>
     <Reference Include="iRacingSDK">
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\iRacingSDK.dll</HintPath>
     </Reference>
     <Reference Include="log4net">
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="MahApps.Metro">
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\MahApps.Metro.dll</HintPath>
+    </Reference>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\MathNet.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="PresentationCore" />
