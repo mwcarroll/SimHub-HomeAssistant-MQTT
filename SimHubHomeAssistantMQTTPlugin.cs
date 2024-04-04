@@ -25,6 +25,8 @@ namespace SimHub.HomeAssistant.MQTT
 
         public SimHubHomeAssistantMQTTPluginUserSettings UserSettings { get; private set; }
 
+        private bool _iRacingNewSession;
+
         private MqttFactory _mqttFactory;
         private IManagedMqttClient _mqttClient;
 
@@ -56,7 +58,12 @@ namespace SimHub.HomeAssistant.MQTT
         /// <param name="data">Current game data, including current and previous data frame.</param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data)
         {
-            if (!data.GameRunning || data.GameName.ToUpper() != "IRACING") return;
+            if (!data.GameRunning || data.GameName.ToUpper() != "IRACING")
+            {
+                _iRacingNewSession = false;
+                
+                return;
+            }
             
             if (!(data.NewData.GetRawDataObject() is DataSampleEx irData)) return;
 
@@ -76,7 +83,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             #region UpdateWhenDifferent
 
-            bool updateAll = !data.OldData.CarId.Equals(data.NewData.CarId);
+            bool updateAll = !_iRacingNewSession;
 
             if (!updateAll)
             {
@@ -122,6 +129,8 @@ namespace SimHub.HomeAssistant.MQTT
                 {
                     _sensorConfigs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude, _mqttClient);
                 }
+
+                _iRacingNewSession = false;
             }
             else
             {
@@ -158,7 +167,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             foreach (KeyValuePair<string, SensorConfig> kvp in _sensorConfigs)
             {
-                kvp.Value.UpdateSensorState("Unknown", _mqttClient);
+                kvp.Value.UpdateSensorState(null, _mqttClient);
             }
             
             _mqttClient.Dispose();
@@ -192,15 +201,21 @@ namespace SimHub.HomeAssistant.MQTT
             // create sensor configs - auto publish for home assistant visibility
             _sensorConfigs.Add("SessionType", SensorConfig.CreateInstance("simhub/session/type", "SimHub Race Session Type", $"simhub-race-session-type-{UserSettings.UserId}", _mqttClient));
             _sensorConfigs.Add("SessionInSimTime", SensorConfig.CreateInstance("simhub/session/datetime", "SimHub Race Session In-Sim DateTime", $"simhub-race-session-in-sim-datetime-{UserSettings.UserId}", _mqttClient));
-            _sensorConfigs.Add("SessionIsOfficial", SensorConfig.CreateInstance("simhub/session/isOfficial", "SimHub Race Session Is Official", $"simhub-race-session-is-session-official-{UserSettings.UserId}", _mqttClient));
+            _sensorConfigs.Add("SessionIsOfficial", SensorConfig.CreateInstance("simhub/session/is-official", "SimHub Race Session Is Official", $"simhub-race-session-is-session-official-{UserSettings.UserId}", _mqttClient));
             _sensorConfigs.Add("SessionLeagueId", SensorConfig.CreateInstance("simhub/session/leagueId", "SimHub Race Session League Id", $"simhub-race-session-league-id-{UserSettings.UserId}", _mqttClient));
             
             _sensorConfigs.Add("TrackInfoAltitude", SensorConfig.CreateInstance("simhub/track/altitude", "SimHub Track Altitude", $"simhub-track-altitude-{UserSettings.UserId}", _mqttClient));
             _sensorConfigs.Add("TrackInfoLatitude", SensorConfig.CreateInstance("simhub/track/latitude", "SimHub Track Latitude", $"simhub-track-latitude-{UserSettings.UserId}", _mqttClient));
             _sensorConfigs.Add("TrackInfoLongitude", SensorConfig.CreateInstance("simhub/track/longitude", "SimHub Track Longitude", $"simhub-track-longitude-{UserSettings.UserId}", _mqttClient));
+            
+            // initialize values as "none"
+            foreach (KeyValuePair<string, SensorConfig> kvp in _sensorConfigs)
+            {
+                kvp.Value.UpdateSensorState(null, _mqttClient);
+            }
         }
 
-        internal void CreateMqttClient()
+        internal void CreateMqttClient(bool disposeOldMqttClient = true)
         {
             _mqttFactory = new MqttFactory();
             IManagedMqttClient newMqttClient = _mqttFactory.CreateManagedMqttClient();
@@ -221,7 +236,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             _mqttClient = newMqttClient;
 
-            oldMqttClient?.Dispose();
+            if(disposeOldMqttClient) oldMqttClient?.Dispose();
         }
     }
 

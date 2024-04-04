@@ -32,7 +32,7 @@ namespace SimHub.HomeAssistant.MQTT.Settings
             SimHubHomeAssistantMqttPlugin.Settings.Login = Model.Login;
             SimHubHomeAssistantMqttPlugin.Settings.Password = Model.Password;
 
-            SimHubHomeAssistantMqttPlugin.CreateMqttClient();
+            SimHubHomeAssistantMqttPlugin.CreateMqttClient(false);
         }
     }
 }
