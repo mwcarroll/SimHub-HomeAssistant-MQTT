@@ -2,13 +2,14 @@
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace SimHub.HomeAssistant.MQTT.ViewModels
+namespace SimHub.HomeAssistant.MQTT
 {
     internal class SimHubHomeAssistantMqttPluginUiModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
         private string _server;
+        private int _port;
         private string _login;
         private string _password;
         private Guid _userId;
@@ -19,6 +20,16 @@ namespace SimHub.HomeAssistant.MQTT.ViewModels
             set
             {
                 _server = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public int Port
+        {
+            get => _port;
+            set
+            {
+                _port = value;
                 OnPropertyChanged();
             }
         }

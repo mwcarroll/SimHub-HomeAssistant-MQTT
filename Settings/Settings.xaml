@@ -4,10 +4,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:viewmodels="clr-namespace:SimHub.HomeAssistant.MQTT.ViewModels"
+             xmlns:viewmodels="clr-namespace:SimHub.HomeAssistant.MQTT"
              xmlns:styles="clr-namespace:SimHub.Plugins.Styles;assembly=SimHub.Plugins"
-             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewmodels:SimHubHomeAssistantMqttPluginUiModel}"
-             d:DesignHeight="450" d:DesignWidth="800">
+             mc:Ignorable="d" d:DataContext="{d:DesignInstance viewmodels:SimHubHomeAssistantMqttPluginUiModel}">
     <Grid>
         <styles:SHSection Title="MQTT Settings">
             <Grid>
@@ -22,21 +21,25 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <Label Grid.Row="0" Grid.Column="0">MQTT Server</Label>
-                <TextBox Margin="4" Grid.Row="0" Grid.Column="1" Text="{Binding Path=Server}"></TextBox>
+                <TextBox Margin="4" Grid.Row="0" Grid.Column="1" Text="{Binding Path=Server}" />
 
-                <Label Grid.Row="1" Grid.Column="0">MQTT Login</Label>
-                <TextBox Margin="4" Grid.Row="1" Grid.Column="1" Text="{Binding Path=Login}"></TextBox>
+                <Label Grid.Row="1" Grid.Column="0">MQTT Port</Label>
+                <TextBox Margin="4" Grid.Row="1" Grid.Column="1" Text="{Binding Path=Port}" />
 
-                <Label Grid.Row="2" Grid.Column="0">MQTT Password</Label>
-                <TextBox Margin="4" Grid.Row="2" Grid.Column="1" Text="{Binding Path=Password}"></TextBox>
-                
-                <Label Grid.Row="3" Grid.Column="0">User ID (readonly)</Label>
-                <TextBox Margin="4" Grid.Row="3" Grid.Column="1" Text="{Binding Path=UserId}" IsReadOnly="true"></TextBox>
+                <Label Grid.Row="2" Grid.Column="0">MQTT Login</Label>
+                <TextBox Margin="4" Grid.Row="2" Grid.Column="1" Text="{Binding Path=Login}" />
 
-                <styles:SHButtonPrimary Margin="4" Grid.Row="4" Grid.Column="0" Click="Apply_Settings">Apply setting</styles:SHButtonPrimary>
+                <Label Grid.Row="3" Grid.Column="0">MQTT Password</Label>
+                <TextBox Margin="4" Grid.Row="3" Grid.Column="1" Text="{Binding Path=Password}" />
+
+                <Label Grid.Row="4" Grid.Column="0">Unique Connection ID (readonly)</Label>
+                <TextBox Margin="4" Grid.Row="4" Grid.Column="1" Text="{Binding Path=UserId}" IsReadOnly="true" />
+
+                <styles:SHButtonPrimary Margin="4" Grid.Row="5" Grid.Column="0" Click="Apply_Settings">Apply setting</styles:SHButtonPrimary>
             </Grid>
         </styles:SHSection>
     </Grid>

@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{AF25724E-84B9-43EC-AF82-CE42947F0466}</ProjectGuid>
+    <ProjectGuid>{833040C9-FE5E-4CCF-B21D-71979E049B6B}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SimHub.HomeAssistant.MQTT</RootNamespace>
@@ -31,43 +31,73 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="AvalonDock">
+      <HintPath>$(SIMHUB_INSTALL_PATH)\AvalonDock.dll</HintPath>
+    </Reference>
+    <Reference Include="AvalonDock.Themes.VS2013">
+      <HintPath>$(SIMHUB_INSTALL_PATH)\AvalonDock.Themes.VS2013.dll</HintPath>
+    </Reference>
     <Reference Include="GameReaderCommon">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\GameReaderCommon.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)GameReaderCommon.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="GongSolutions.WPF.DragDrop">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\GongSolutions.WPF.DragDrop.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)GongSolutions.WPF.DragDrop.dll</HintPath>
     </Reference>
     <Reference Include="ICarsReader">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\ICarsReader.dll</HintPath>
+      <HintPath>..\..\ICarsReader.dll</HintPath>
     </Reference>
-    <Reference Include="InputManagerCS">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\InputManagerCS.dll</HintPath>
+    <Reference Include="InputManagerCS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SIMHUB_INSTALL_PATH)InputManagerCS.dll</HintPath>
     </Reference>
-    <Reference Include="iRacingSDK">
+    <Reference Include="iRacingSDK, Version=1.13.8456.39470, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\iRacingSDK.dll</HintPath>
     </Reference>
-    <Reference Include="log4net">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SIMHUB_INSTALL_PATH)log4net.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="MahApps.Metro">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\MahApps.Metro.dll</HintPath>
+    <Reference Include="MahApps.Metro, Version=1.5.0.23, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.dll</HintPath>
+      <Private>False</Private>
     </Reference>
-    <Reference Include="MathNet.Numerics">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\MathNet.Numerics.dll</HintPath>
+    <Reference Include="MahApps.Metro.IconPacks.Core">
+      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.Core.dll</HintPath>
     </Reference>
-    <Reference Include="mscorlib" />
+    <Reference Include="MahApps.Metro.IconPacks.FontAwesome">
+      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.FontAwesome.dll</HintPath>
+    </Reference>
+    <Reference Include="MahApps.Metro.IconPacks.Material">
+      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.Material.dll</HintPath>
+    </Reference>
+    <Reference Include="MQTTnet, Version=4.3.3.952, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
+      <HintPath>packages\MQTTnet.4.3.3.952\lib\net48\MQTTnet.dll</HintPath>
+    </Reference>
+    <Reference Include="MQTTnet.Extensions.ManagedClient, Version=4.3.3.952, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
+      <HintPath>packages\MQTTnet.Extensions.ManagedClient.4.3.3.952\lib\net48\MQTTnet.Extensions.ManagedClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
-    <Reference Include="SimHub.Logging">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\SimHub.Logging.dll</HintPath>
+    <Reference Include="SimHub.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>$(SIMHUB_INSTALL_PATH)SimHub.Logging.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="SimHub.Plugins">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\SimHub.Plugins.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)SimHub.Plugins.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
@@ -77,34 +107,41 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
+    <Reference Include="WoteverCommon">
+      <HintPath>$(SIMHUB_INSTALL_PATH)WoteverCommon.dll</HintPath>
+    </Reference>
+    <Reference Include="WoteverLocalization">
+      <HintPath>$(SIMHUB_INSTALL_PATH)WoteverLocalization.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Settings\SimHubHomeAssistantMQTTPluginUI.xaml.cs">
-      <DependentUpon>SimHubHomeAssistantMQTTPluginUI.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Settings\SettingsModel.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPlugin.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPluginSettings.cs" />
+    <Compile Include="Settings\Settings.xaml.cs">
+      <DependentUpon>Settings.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\SimHubHomeAssistantMqttPluginUiModel.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Page Include="Settings\Settings.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Properties\DesignTimeResources.xaml" Condition="'$(DesignTime)'=='true' OR ('$(SolutionPath)'!='' AND Exists('$(SolutionPath)') AND '$(BuildingInsideVisualStudio)'!='true' AND '$(BuildingInsideExpressionBlend)'!='true')">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
       <ContainsDesignTimeResources>true</ContainsDesignTimeResources>
     </Page>
-    <Page Include="Settings\SimHubHomeAssistantMQTTPluginUI.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="sdkmenuicon.png" />
+    <None Include="Resources\MQTTMenuIcon.png" />
+    <None Include="Resources\SH.HA.MQTT-MenuIcon.png" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Properties\Resources.resx">
@@ -113,28 +150,20 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="App.config" />
+    <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="MQTTnet" Version="4.3.3.952" />
-    <PackageReference Include="MQTTnet.Extensions.ManagedClient" Version="4.3.3.952" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Buffers" Version="4.5.1" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
-    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0" />
-    <PackageReference Include="System.Resources.Extensions" Version="9.0.0-preview.2.24128.5" />
-    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.0.0" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-copy /Y "$(TargetDir)$(ProjectName).dll" "c:\Program Files (x86)\SimHub\$(ProjectName).dll"
-copy /Y "$(TargetDir)$(ProjectName).pdb" "c:\Program Files (x86)\SimHub\$(ProjectName).pdb"
-copy /Y "$(TargetDir)MQTTnet.dll" "c:\Program Files (x86)\SimHub\MQTTnet.dll"
-copy /Y "$(TargetDir)MQTTnet.Extensions.ManagedClient.dll" "c:\Program Files (x86)\SimHub\MQTTnet.Extensions.ManagedClient.dll"
-"C:\Program Files (x86)\SimHub\SimHubWPF.exe"</PostBuildEvent>
+    <PostBuildEvent>XCOPY /Y /R "$(TargetDir)\$(TargetName)*" "%25SIMHUB_INSTALL_PATH%25"
+XCOPY /Y /R "$(TargetDir)\MQTT*" "%25SIMHUB_INSTALL_PATH%25"
+"%25SIMHUB_INSTALL_PATH%25\SimHubWPF.exe"</PostBuildEvent>
   </PropertyGroup>
-  <PropertyGroup>
-    <GenerateResourceUsePreserializedResources>true</GenerateResourceUsePreserializedResources>
-  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
 </Project>

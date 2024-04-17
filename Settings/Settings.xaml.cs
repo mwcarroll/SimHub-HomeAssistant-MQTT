@@ -1,6 +1,5 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
-using SimHub.HomeAssistant.MQTT.ViewModels;
 
 namespace SimHub.HomeAssistant.MQTT.Settings
 {
@@ -14,6 +13,7 @@ namespace SimHub.HomeAssistant.MQTT.Settings
             Model = new SimHubHomeAssistantMqttPluginUiModel
             {
                 Server = simHubHomeAssistantMqttPlugin.Settings.Server,
+                Port = simHubHomeAssistantMqttPlugin.Settings.Port,
                 Login = simHubHomeAssistantMqttPlugin.Settings.Login,
                 Password = simHubHomeAssistantMqttPlugin.Settings.Password,
                 UserId = simHubHomeAssistantMqttPlugin.UserSettings.UserId,
@@ -29,10 +29,11 @@ namespace SimHub.HomeAssistant.MQTT.Settings
         private void Apply_Settings(object sender, RoutedEventArgs e)
         {
             SimHubHomeAssistantMqttPlugin.Settings.Server = Model.Server;
+            SimHubHomeAssistantMqttPlugin.Settings.Port = Model.Port;
             SimHubHomeAssistantMqttPlugin.Settings.Login = Model.Login;
             SimHubHomeAssistantMqttPlugin.Settings.Password = Model.Password;
 
-            SimHubHomeAssistantMqttPlugin.CreateMqttClient(false);
+            SimHubHomeAssistantMqttPlugin.CreateMqttClient();
         }
     }
 }

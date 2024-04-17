@@ -2,12 +2,11 @@
 
 namespace SimHub.HomeAssistant.MQTT
 {
-    /// <summary>
-    /// Settings class, make sure it can be correctly serialized using JSON.net
-    /// </summary>
     public class SimHubHomeAssistantMQTTPluginSettings
     {
         public string Server { get; set; } = "localhost";
+
+        public int Port { get; set; } = 1883;
 
         public string Login { get; set; } = "admin";
 

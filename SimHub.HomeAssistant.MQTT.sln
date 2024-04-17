@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{5F96C6E5-B447-4491-A5AE-F3783FECF044}") = "SimHub.HomeAssistant.MQTT", "SimHub.HomeAssistant.MQTT.csproj", "{AF25724E-84B9-43EC-AF82-CE42947F0466}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimHub.HomeAssistant.MQTT", "SimHub.HomeAssistant.MQTT.csproj", "{833040C9-FE5E-4CCF-B21D-71979E049B6B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,8 +11,10 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{AF25724E-84B9-43EC-AF82-CE42947F0466}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{AF25724E-84B9-43EC-AF82-CE42947F0466}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{833040C9-FE5E-4CCF-B21D-71979E049B6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{833040C9-FE5E-4CCF-B21D-71979E049B6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{833040C9-FE5E-4CCF-B21D-71979E049B6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{833040C9-FE5E-4CCF-B21D-71979E049B6B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
