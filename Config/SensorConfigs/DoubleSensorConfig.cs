@@ -2,9 +2,9 @@
 using MQTTnet.Extensions.ManagedClient;
 using Newtonsoft.Json;
 
-namespace SimHub.HomeAssistant.MQTT.Config.Derivatives.Numbers
+namespace SimHub.HomeAssistant.MQTT.Config.SensorConfigs
 {
-    public class DoubleNumberConfig : DiscoveryConfig
+    public class DoubleSensorConfig : BaseConfig
     {
 
         [JsonProperty("unit_of_measurement")]
@@ -14,7 +14,7 @@ namespace SimHub.HomeAssistant.MQTT.Config.Derivatives.Numbers
         public override object EmptyValue { get; }
         public override Type ValueType => typeof(double?);
 
-        public DoubleNumberConfig(Device device, string name, string uniqueId, IManagedMqttClient mqttClient, string icon = null, double? emptyValue = null, string unitOfMeasurement = null) :
+        public DoubleSensorConfig(BaseConfigDevice device, string name, string uniqueId, IManagedMqttClient mqttClient, string icon = null, double? emptyValue = null, string unitOfMeasurement = null) :
             base(device, name, uniqueId, mqttClient, icon)
         {
             EmptyValue = emptyValue;

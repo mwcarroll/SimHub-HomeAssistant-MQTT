@@ -2,7 +2,7 @@
 
 namespace SimHub.HomeAssistant.MQTT.Config
 {
-    public class Device
+    public class BaseConfigDevice
     {
         [JsonProperty("identifiers")]
         public string[] Identifiers { get; set; }

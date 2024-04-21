@@ -2,9 +2,9 @@
 using MQTTnet.Extensions.ManagedClient;
 using Newtonsoft.Json;
 
-namespace SimHub.HomeAssistant.MQTT.Config.Derivatives
+namespace SimHub.HomeAssistant.MQTT.Config
 {
-    public class BinarySensorConfig : DiscoveryConfig
+    public class BinarySensorConfig : BaseConfig
     {
         [JsonProperty("device_class")]
         public string DeviceClass { get; private set; }
@@ -19,7 +19,7 @@ namespace SimHub.HomeAssistant.MQTT.Config.Derivatives
         public override object EmptyValue { get; }
         public override Type ValueType => typeof(bool?);
 
-        public BinarySensorConfig(Device device, string name, string uniqueId, IManagedMqttClient mqttClient, string icon = null, bool? emptyValue = null, string deviceClass = null, string payloadOn = null, string payloadOff = null) :
+        public BinarySensorConfig(BaseConfigDevice device, string name, string uniqueId, IManagedMqttClient mqttClient, string icon = null, bool? emptyValue = null, string deviceClass = null, string payloadOn = null, string payloadOff = null) :
             base(device, name, uniqueId, mqttClient, icon)
         {
             EmptyValue = emptyValue;

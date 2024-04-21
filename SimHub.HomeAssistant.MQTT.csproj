@@ -115,10 +115,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Config\Derivatives\BinarySensorConfig.cs" />
-    <Compile Include="Config\Derivatives\Numbers\DoubleNumberConfig.cs" />
-    <Compile Include="Config\Derivatives\Numbers\IntegerNumberConfig.cs" />
-    <Compile Include="Config\Derivatives\SensorConfig.cs" />
+    <Compile Include="Config\BinarySensorConfig.cs" />
+    <Compile Include="Config\SensorConfigs\DoubleSensorConfig.cs" />
+    <Compile Include="Config\SensorConfigs\IntegerSensorConfig.cs" />
+    <Compile Include="Config\SensorConfig.cs" />
     <Compile Include="Config\Device.cs" />
     <Compile Include="Config\DiscoveryConfig.cs" />
     <Compile Include="Settings\SettingsModel.cs" />

@@ -3,14 +3,13 @@ using System.Threading.Tasks;
 using MQTTnet;
 using MQTTnet.Extensions.ManagedClient;
 using Newtonsoft.Json;
-using SimHub.HomeAssistant.MQTT.Config.Derivatives;
 
 namespace SimHub.HomeAssistant.MQTT.Config
 {
-    public abstract class DiscoveryConfig
+    public abstract class BaseConfig
     {
         [JsonProperty("device")]
-        public Device Device { get; private set; }
+        public BaseConfigDevice Device { get; private set; }
 
         [JsonIgnore]
         public abstract string Component { get; }
@@ -52,7 +51,7 @@ namespace SimHub.HomeAssistant.MQTT.Config
         [JsonIgnore]
         public IManagedMqttClient ManagedMqttClient { get; private set; }
 
-        protected DiscoveryConfig(Device device, string name, string uniqueId, IManagedMqttClient managedMqttClient, string icon = null)
+        protected BaseConfig(BaseConfigDevice device, string name, string uniqueId, IManagedMqttClient managedMqttClient, string icon = null)
         {
             Device = device;
             Name = name;
