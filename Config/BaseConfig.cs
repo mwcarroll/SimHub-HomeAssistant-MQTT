@@ -73,8 +73,7 @@ namespace SimHub.HomeAssistant.MQTT.Config
                .WithPayload(JsonConvert.SerializeObject(this, Formatting.Indented))
                .Build();
 
-            Logging.Current.Info(ConfigTopic);
-            Logging.Current.Info(JsonConvert.SerializeObject(this, Formatting.Indented));
+            Logging.Current.Info($"Informed: {ConfigTopic}");
 
             // send inform to home assistant
             ManagedMqttClient.EnqueueAsync(mqttApplicationMessage).Wait();

@@ -47,7 +47,8 @@ namespace SimHub.HomeAssistant.MQTT
         /// </summary>
         public string LeftMenuTitle => "HomeAssistant MQTT Publisher";
 
-        Int64 counter = 0;
+        private int counter = 1;
+        private bool iRacingAlreadyInitialized = false;
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data,
@@ -62,34 +63,48 @@ namespace SimHub.HomeAssistant.MQTT
         {
             if (!_managedMqttClient.IsStarted || !_managedMqttClient.IsConnected)
             {
-                // TODO: inform the user that the MQTT connection is not established
                 return;
-            }
-
-            // TODO: remove later... just testing sending "devices"
-            foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
-            {
-                if(kvp.Value.GetType() == typeof(BinarySensorConfig))
-                {
-                    kvp.Value.UpdateSensorState(counter % 5 == 0 ? "ON" : "OFF");
-                }
-                else
-                {
-                    kvp.Value.UpdateSensorState(counter);
-                }
-
-                if (counter - 6 == 0) counter = 0;
-                else counter++;
             }
 
             if (!data.GameRunning || data.GameName.ToUpper() != "IRACING")
             {
-                _iRacingNewSession = false;
+                iRacingAlreadyInitialized = false;
+
+                if (counter == 60)
+                {
+                    foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
+                    {
+                        if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                        {
+                            kvp.Value.UpdateSensorAvailability(false);
+                        }
+                    }
+
+                    counter = 1;
+                }
+                else
+                {
+                    counter++;
+                }
 
                 return;
             }
 
             if (!(data.NewData.GetRawDataObject() is DataSampleEx irData)) return;
+
+            // mark sensors as available
+            if (!iRacingAlreadyInitialized)
+            {
+                foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
+                {
+                    if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                    {
+                        kvp.Value.UpdateSensorAvailability(true);
+                    }
+                }
+
+                iRacingAlreadyInitialized = true;
+            }
 
             #region UpdateEveryTick
 
@@ -100,102 +115,92 @@ namespace SimHub.HomeAssistant.MQTT
 
             DateTime inSimTime = DateTime.Parse($"{sessionStartDay} {sessionStartTime}").AddSeconds((int)(sessionTimePrecise * earthRotationSpeedupFactor));
 
-            _configs["SessionInSimTime"].UpdateSensorState(inSimTime);
+            _configs["SessionInfoInSimTime"].UpdateSensorState(inSimTime);
 
             #endregion
 
             #region UpdateWhenDifferent
-
-            bool updateAll = !_iRacingNewSession;
-
-            if (!updateAll)
+            object oldDataRawObject = data.OldData?.GetRawDataObject();
+            if (oldDataRawObject == null || !(oldDataRawObject is DataSampleEx oldIrData))
             {
-                DataSampleEx oldIrData = data.OldData.GetRawDataObject() as DataSampleEx;
+                _configs["DriverInfoIsOnTrack"].UpdateSensorState(irData.Telemetry.IsOnTrack);
+                _configs["DriverInfoIsOnTrackCar"].UpdateSensorState(irData.Telemetry.IsOnTrackCar);
+                _configs["DriverInfoIsInReplay"].UpdateSensorState(irData.Telemetry.IsReplayPlaying);
 
-                bool oldDriverIsInCar = oldIrData.Telemetry.DriverMarker;
-                bool newDriverIsInCar = irData.Telemetry.DriverMarker;
-                if (!oldDriverIsInCar.Equals(newDriverIsInCar))
-                {
-                    _configs["DriverInfoIsInCar"].UpdateSensorState(newDriverIsInCar);
-                }
+                _configs["SessionInfoType"].UpdateSensorState(irData.SessionData.WeekendInfo.EventType ?? "Unknown");
+                _configs["SessionInfoIsOfficial"].UpdateSensorState(((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1") ? "Yes" : "No");
+                _configs["SessionInfoLeagueId"].UpdateSensorState(int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]));
 
-                //GameRawData.Telemetry.IsReplayPlaying
-                bool oldDriverIsInReplay = oldIrData.Telemetry.IsReplayPlaying;
-                bool newDriverIsInReplay = irData.Telemetry.IsReplayPlaying;
-                if (!oldDriverIsInReplay.Equals(newDriverIsInReplay))
-                {
-                    _configs["DriverInfoIsInReplay"].UpdateSensorState(newDriverIsInReplay);
-                }
+                _configs["TrackInfoAltitude"].UpdateSensorState(((string)irData.SessionDataDict["WeekendInfo.TrackAltitude"]).Replace(" m", ""));
+                _configs["TrackInfoLatitude"].UpdateSensorState(((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", ""));
+                _configs["TrackInfoLongitude"].UpdateSensorState(((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", ""));
 
-                string oldSessionType = oldIrData?.SessionData.WeekendInfo.EventType ?? "Unknown";
-                string newSessionType = irData.SessionData.WeekendInfo.EventType ?? "Unknown";
-                if (!oldSessionType.Equals(newSessionType))
-                {
-                    _configs["SessionType"].UpdateSensorState(newSessionType);
-                }
-
-                bool oldIsSessionOfficial = ((string)oldIrData?.SessionDataDict["WeekendInfo.Official"] ?? "2").Equals("1");
-                bool newIsSessionOfficial = ((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1");
-                if (!oldIsSessionOfficial.Equals(newIsSessionOfficial))
-                {
-                    _configs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial);
-                }
-
-                int oldSessionLeagueId = int.Parse((string)oldIrData?.SessionDataDict["WeekendInfo.LeagueID"] ?? "0");
-                int newSessionLeagueId = int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]);
-                if (!oldSessionLeagueId.Equals(newSessionLeagueId))
-                {
-                    _configs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId);
-                }
-
-                string oldTrackAltitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackAltitude"] ?? "0").Replace(" m", "");
-                string newTrackAltitude = ((string)irData.SessionDataDict["WeekendInfo.TrackAltitude"]).Replace(" m", "");
-                if (!oldTrackAltitude.Equals(newTrackAltitude))
-                {
-                    _configs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude);
-                }
-
-                string oldTrackLatitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLatitude"] ?? "0").Replace(" m", "");
-                string newTrackLatitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", "");
-                if (!oldTrackLatitude.Equals(newTrackLatitude))
-                {
-                    _configs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude);
-                }
-
-                string oldTrackLongitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLongitude"] ?? "0").Replace(" m", "");
-                string newTrackLongitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", "");
-                if (!oldTrackLongitude.Equals(newTrackLongitude))
-                {
-                    _configs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude);
-                }
-
-                _iRacingNewSession = false;
+                return;
             }
-            else
+
+            bool oldDriverInfoIsOnTrack = oldIrData.Telemetry.IsOnTrack;
+            bool newDriverInfoIsOnTrack = irData.Telemetry.IsOnTrack;
+            if (!oldDriverInfoIsOnTrack.Equals(newDriverInfoIsOnTrack))
             {
-                bool newDriverIsInCar = irData.Telemetry.DriverMarker;
-                bool newDriverIsInReplay = irData.Telemetry.IsReplayPlaying;
+                _configs["DriverInfoIsOnTrack"].UpdateSensorState(newDriverInfoIsOnTrack);
+            }
 
-                string newSessionType = irData.SessionData.WeekendInfo.EventType ?? "Unknown";
-                bool newIsSessionOfficial = ((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1");
-                int newSessionLeagueId = int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]);
+            bool oldDriverInfoIsCarOnTrack = oldIrData.Telemetry.IsOnTrackCar;
+            bool newDriverInfoIsCarOnTrack = irData.Telemetry.IsOnTrackCar;
+            if (!oldDriverInfoIsCarOnTrack.Equals(newDriverInfoIsCarOnTrack))
+            {
+                _configs["DriverInfoIsOnTrackCar"].UpdateSensorState(newDriverInfoIsCarOnTrack);
+            }
 
-                string newTrackAltitude = ((string)irData.SessionDataDict["WeekendInfo.TrackAltitude"]).Replace(" m", "");
-                string newTrackLatitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", "");
-                string newTrackLongitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", "");
-
-                _configs["DriverInfoIsInCar"].UpdateSensorState(newDriverIsInCar);
+            //GameRawData.Telemetry.IsReplayPlaying
+            bool oldDriverIsInReplay = oldIrData.Telemetry.IsReplayPlaying;
+            bool newDriverIsInReplay = irData.Telemetry.IsReplayPlaying;
+            if (!oldDriverIsInReplay.Equals(newDriverIsInReplay))
+            {
                 _configs["DriverInfoIsInReplay"].UpdateSensorState(newDriverIsInReplay);
+            }
 
-                _configs["SessionType"].UpdateSensorState(newSessionType);
-                _configs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial);
-                _configs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId);
+            string oldSessionType = oldIrData?.SessionData.WeekendInfo.EventType ?? "Unknown";
+            string newSessionType = irData.SessionData.WeekendInfo.EventType ?? "Unknown";
+            if (!oldSessionType.Equals(newSessionType))
+            {
+                _configs["SessionInfoType"].UpdateSensorState(newSessionType);
+            }
 
+            string oldIsSessionOfficial = ((string)oldIrData?.SessionDataDict["WeekendInfo.Official"] ?? "2").Equals("1") ? "Yes" : "No";
+            string newIsSessionOfficial = ((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1") ? "Yes" : "No";
+            if (!oldIsSessionOfficial.Equals(newIsSessionOfficial))
+            {
+                _configs["SessionInfoIsOfficial"].UpdateSensorState(newIsSessionOfficial);
+            }
+
+            int oldSessionLeagueId = int.Parse((string)oldIrData?.SessionDataDict["WeekendInfo.LeagueID"] ?? "0");
+            int newSessionLeagueId = int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]);
+            if (!oldSessionLeagueId.Equals(newSessionLeagueId))
+            {
+                _configs["SessionInfoLeagueId"].UpdateSensorState(newSessionLeagueId);
+            }
+
+            string oldTrackAltitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackAltitude"] ?? "0").Replace(" m", "");
+            string newTrackAltitude = ((string)irData.SessionDataDict["WeekendInfo.TrackAltitude"]).Replace(" m", "");
+            if (!oldTrackAltitude.Equals(newTrackAltitude))
+            {
                 _configs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude);
+            }
+
+            string oldTrackLatitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLatitude"] ?? "0").Replace(" m", "");
+            string newTrackLatitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", "");
+            if (!oldTrackLatitude.Equals(newTrackLatitude))
+            {
                 _configs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude);
+            }
+
+            string oldTrackLongitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLongitude"] ?? "0").Replace(" m", "");
+            string newTrackLongitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", "");
+            if (!oldTrackLongitude.Equals(newTrackLongitude))
+            {
                 _configs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude);
             }
-
             #endregion
         }
 
@@ -244,7 +249,7 @@ namespace SimHub.HomeAssistant.MQTT
         /// <param name="pluginManager"></param>
         public void Init(PluginManager pluginManager)
         {
-            Logging.Current.Debug("Starting SimHub.HomeAssistant.MQTT");
+            Logging.Current.Info("Starting SimHub.HomeAssistant.MQTT");
 
             // Load settings
             Settings = this.ReadCommonSettings("GeneralSettings", () => new SimHubHomeAssistantMQTTPluginSettings());
@@ -272,7 +277,6 @@ namespace SimHub.HomeAssistant.MQTT
             _managedMqttClient.StartAsync(managedMqttClientOptions);
 
             // create sensor configs - auto publish for home assistant visibility
-
             BaseConfigDevice driverInfoDevice = new BaseConfigDevice
             {
                 Name = $"SimHub - {Environment.MachineName} - Driver Info",
@@ -282,7 +286,8 @@ namespace SimHub.HomeAssistant.MQTT
                 SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _configs.Add("DriverInfoIsInCar", new BinarySensorConfig(ref driverInfoDevice, "Is In Car", $"{UserSettings.UserId}-is-in-car", ref _managedMqttClient, "mdi:car-select", false));
+            _configs.Add("DriverInfoIsOnTrack", new BinarySensorConfig(ref driverInfoDevice, "Is On Track", $"{UserSettings.UserId}-is-on-track", ref _managedMqttClient, "mdi:car-select", false));
+            _configs.Add("DriverInfoIsOnTrackCar", new BinarySensorConfig(ref driverInfoDevice, "Is Car On Track", $"{UserSettings.UserId}-is-on-track-car", ref _managedMqttClient, "mdi:car-select", false));
             _configs.Add("DriverInfoIsInReplay", new BinarySensorConfig(ref driverInfoDevice, "Is In Replay", $"{UserSettings.UserId}-is-in-replay", ref _managedMqttClient, "mdi:movie-open-outline", false));
 
             BaseConfigDevice sessionInfoDevice = new BaseConfigDevice
@@ -296,7 +301,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             _configs.Add("SessionInfoType", new SensorConfig(ref sessionInfoDevice, "Session Type", $"{UserSettings.UserId}-type", ref _managedMqttClient, "mdi:form-select"));
             _configs.Add("SessionInfoInSimTime", new SensorConfig(ref sessionInfoDevice, "In-Sim DateTime", $"{UserSettings.UserId}-in-sim-datetime", ref _managedMqttClient, "mdi:clipboard-text-clock-outline"));
-            _configs.Add("SessionInfoIsOfficial", new BinarySensorConfig(ref sessionInfoDevice, "Is Official", $"{UserSettings.UserId}-is-session-official", ref _managedMqttClient, "mdi:flag-outline", false, "opening"));
+            _configs.Add("SessionInfoIsOfficial", new SensorConfig(ref sessionInfoDevice, "Is Official", $"{UserSettings.UserId}-is-session-official", ref _managedMqttClient, "mdi:flag-outline", "No"));
             _configs.Add("SessionInfoLeagueId", new IntegerSensorConfig(ref sessionInfoDevice, "League Id", $"{UserSettings.UserId}-league-id", ref _managedMqttClient, "mdi:identifier", 0));
 
             BaseConfigDevice trackInfoDevice = new BaseConfigDevice
