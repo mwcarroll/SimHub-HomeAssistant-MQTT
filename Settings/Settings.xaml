@@ -22,6 +22,7 @@
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
                     <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
 
                 <Label Grid.Row="0" Grid.Column="0">MQTT Server</Label>
@@ -39,7 +40,10 @@
                 <Label Grid.Row="4" Grid.Column="0">Unique Connection ID (readonly)</Label>
                 <TextBox Margin="4" Grid.Row="4" Grid.Column="1" Text="{Binding Path=UserId}" IsReadOnly="true" />
 
-                <styles:SHButtonPrimary Margin="4" Grid.Row="5" Grid.Column="0" Click="Apply_Settings">Apply settings</styles:SHButtonPrimary>
+                <styles:SHButtonPrimary Margin="4" Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2" Click="Apply_Settings">Apply settings</styles:SHButtonPrimary>
+                
+                <Label Grid.Row="6" Grid.Column="0" Visibility="{Binding Path=LastErrorVisible}">Last Error</Label>
+                <TextBlock Margin="4" Grid.Row="6" Grid.Column="1" Text="{Binding Path=LastError}" TextWrapping="Wrap" />
             </Grid>
         </styles:SHSection>
     </Grid>

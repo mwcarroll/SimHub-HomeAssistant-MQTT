@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Media;
 using GameReaderCommon;
 using IRacingReader;
 using MQTTnet;
 using MQTTnet.Client;
-using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Exceptions;
 using SimHub.HomeAssistant.MQTT.Config;
 using SimHub.HomeAssistant.MQTT.Config.SensorConfigs;
 using SimHub.HomeAssistant.MQTT.Properties;
@@ -25,10 +27,8 @@ namespace SimHub.HomeAssistant.MQTT
 
         public SimHubHomeAssistantMQTTPluginUserSettings UserSettings { get; private set; }
 
-        private bool _iRacingNewSession;
-
         private MqttFactory _mqttFactory;
-        private IManagedMqttClient _managedMqttClient;
+        private IMqttClient _mqttClient;
 
         private Dictionary<string, BaseConfig> _configs = new Dictionary<string, BaseConfig>();
 
@@ -37,7 +37,7 @@ namespace SimHub.HomeAssistant.MQTT
         /// </summary>
         public PluginManager PluginManager { get; set; }
 
-        /// <summary>
+        /// <summary>a
         /// Gets the left menu icon. Icon must be 24x24 and compatible with black and white display.
         /// </summary>
         public ImageSource PictureIcon => this.ToIcon(Resources.SH_HA_MQTT_MenuIcon);
@@ -61,7 +61,12 @@ namespace SimHub.HomeAssistant.MQTT
         /// <param name="data">Current game data, including current and previous data frame.</param>
         public void DataUpdate(PluginManager pluginManager, ref GameData data)
         {
-            if (!_managedMqttClient.IsStarted || !_managedMqttClient.IsConnected)
+            if (_configs == null)
+            {
+                return;
+            }
+
+            if (!_mqttClient.IsConnected)
             {
                 return;
             }
@@ -74,7 +79,7 @@ namespace SimHub.HomeAssistant.MQTT
                 {
                     foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
                     {
-                        if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                        if (kvp.Value.MqttClient.IsConnected)
                         {
                             kvp.Value.UpdateSensorAvailability(false);
                         }
@@ -97,7 +102,7 @@ namespace SimHub.HomeAssistant.MQTT
             {
                 foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
                 {
-                    if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                    if (kvp.Value.MqttClient.IsConnected)
                     {
                         kvp.Value.UpdateSensorAvailability(true);
                     }
@@ -217,7 +222,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
             {
-                if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                if (kvp.Value.MqttClient.IsConnected)
                 {
                     kvp.Value.UpdateSensorAvailability(false);
                 }
@@ -225,11 +230,14 @@ namespace SimHub.HomeAssistant.MQTT
 
             _configs = null;
 
-            if (_managedMqttClient.IsStarted)
+            if (_mqttClient.IsConnected)
             {
-                _managedMqttClient.StopAsync();
-                _managedMqttClient = null;
+                _mqttClient.DisconnectAsync();
+
             }
+
+            _mqttClient.Dispose();
+            _mqttClient = null;
         }
 
         /// <summary>
@@ -260,62 +268,112 @@ namespace SimHub.HomeAssistant.MQTT
 
         internal void CreateMqttClient()
         {
-            _configs = new Dictionary<string, BaseConfig>();
-            _mqttFactory = new MqttFactory();
-            _managedMqttClient = _mqttFactory.CreateManagedMqttClient();
+            try
+            {
+                _configs = new Dictionary<string, BaseConfig>();
+                _mqttFactory = new MqttFactory();
+                IMqttClient newMqttClient = _mqttFactory.CreateMqttClient();
 
-            MqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
-               .WithTcpServer(Settings.Server, Settings.Port)
-               .WithCredentials(Settings.Login, Settings.Password)
-               .WithClientId($"SimHub-{Environment.MachineName}-{Guid.NewGuid()}")
-               .Build();
+                MqttClientOptions mqttClientOptions = new MqttClientOptionsBuilder()
+                    .WithTcpServer(Settings.Server, Settings.Port)
+                    .WithCredentials(Settings.Login, Settings.Password)
+                    .WithClientId($"SimHub-{Environment.MachineName}-{Guid.NewGuid()}")
+                    .WithoutThrowOnNonSuccessfulConnectResponse()
+                    .Build();
 
-            ManagedMqttClientOptions managedMqttClientOptions = new ManagedMqttClientOptionsBuilder()
-                .WithClientOptions(mqttClientOptions)
-                .Build();
+                newMqttClient.ConnectedAsync += mqttClient_ConnectedAsync;
+                newMqttClient.DisconnectedAsync += mqttClient_DisconnectedAsync;
 
-            _managedMqttClient.StartAsync(managedMqttClientOptions);
+                newMqttClient.ConnectAsync(mqttClientOptions, CancellationToken.None);
+
+                IMqttClient oldMqttClient = _mqttClient;
+                _mqttClient = newMqttClient;
+
+                if (oldMqttClient != null)
+                {
+                    oldMqttClient.Dispose();
+                }
+            }
+            catch (MqttCommunicationException ex)
+            {
+                _configs = new Dictionary<string, BaseConfig>();
+
+                Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
+                Settings.LastError = ex.Message.ToString();
+            }
+            catch (Exception ex)
+            {
+                _configs = new Dictionary<string, BaseConfig>();
+
+                Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
+                Settings.LastError = ex.Message.ToString();
+            }
+        }
+
+        private Task mqttClient_ConnectedAsync(MqttClientConnectedEventArgs arg)
+        {
+            Settings.LastError = string.Empty;
 
             // create sensor configs - auto publish for home assistant visibility
             BaseConfigDevice driverInfoDevice = new BaseConfigDevice
             {
                 Name = $"SimHub - {Environment.MachineName} - Driver Info",
                 Identifiers = new[] {
-                    $"simhub-driver-info-{UserSettings.UserId}"
-                },
+                        $"simhub-driver-info-{UserSettings.UserId}"
+                    },
                 SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _configs.Add("DriverInfoIsOnTrack", new BinarySensorConfig(ref driverInfoDevice, "Is On Track", $"{UserSettings.UserId}-is-on-track", ref _managedMqttClient, "mdi:car-select", false));
-            _configs.Add("DriverInfoIsOnTrackCar", new BinarySensorConfig(ref driverInfoDevice, "Is Car On Track", $"{UserSettings.UserId}-is-on-track-car", ref _managedMqttClient, "mdi:car-select", false));
-            _configs.Add("DriverInfoIsInReplay", new BinarySensorConfig(ref driverInfoDevice, "Is In Replay", $"{UserSettings.UserId}-is-in-replay", ref _managedMqttClient, "mdi:movie-open-outline", false));
+            _configs.Add("DriverInfoIsOnTrack", new BinarySensorConfig(ref driverInfoDevice, "Is On Track", $"{UserSettings.UserId}-is-on-track", ref _mqttClient, "mdi:car-select", false));
+            _configs.Add("DriverInfoIsOnTrackCar", new BinarySensorConfig(ref driverInfoDevice, "Is Car On Track", $"{UserSettings.UserId}-is-on-track-car", ref _mqttClient, "mdi:car-select", false));
+            _configs.Add("DriverInfoIsInReplay", new BinarySensorConfig(ref driverInfoDevice, "Is In Replay", $"{UserSettings.UserId}-is-in-replay", ref _mqttClient, "mdi:movie-open-outline", false));
 
             BaseConfigDevice sessionInfoDevice = new BaseConfigDevice
             {
                 Name = $"SimHub - {Environment.MachineName} - Session Info",
                 Identifiers = new[] {
-                    $"simhub-session-info-{UserSettings.UserId}"
-                },
-                SimHubVersion = (string) PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
+                        $"simhub-session-info-{UserSettings.UserId}"
+                    },
+                SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _configs.Add("SessionInfoType", new SensorConfig(ref sessionInfoDevice, "Session Type", $"{UserSettings.UserId}-type", ref _managedMqttClient, "mdi:form-select"));
-            _configs.Add("SessionInfoInSimTime", new SensorConfig(ref sessionInfoDevice, "In-Sim DateTime", $"{UserSettings.UserId}-in-sim-datetime", ref _managedMqttClient, "mdi:clipboard-text-clock-outline"));
-            _configs.Add("SessionInfoIsOfficial", new SensorConfig(ref sessionInfoDevice, "Is Official", $"{UserSettings.UserId}-is-session-official", ref _managedMqttClient, "mdi:flag-outline", "No"));
-            _configs.Add("SessionInfoLeagueId", new IntegerSensorConfig(ref sessionInfoDevice, "League Id", $"{UserSettings.UserId}-league-id", ref _managedMqttClient, "mdi:identifier", 0));
+            _configs.Add("SessionInfoType", new SensorConfig(ref sessionInfoDevice, "Session Type", $"{UserSettings.UserId}-type", ref _mqttClient, "mdi:form-select"));
+            _configs.Add("SessionInfoInSimTime", new SensorConfig(ref sessionInfoDevice, "In-Sim DateTime", $"{UserSettings.UserId}-in-sim-datetime", ref _mqttClient, "mdi:clipboard-text-clock-outline"));
+            _configs.Add("SessionInfoIsOfficial", new SensorConfig(ref sessionInfoDevice, "Is Official", $"{UserSettings.UserId}-is-session-official", ref _mqttClient, "mdi:flag-outline", "No"));
+            _configs.Add("SessionInfoLeagueId", new IntegerSensorConfig(ref sessionInfoDevice, "League Id", $"{UserSettings.UserId}-league-id", ref _mqttClient, "mdi:identifier", 0));
 
             BaseConfigDevice trackInfoDevice = new BaseConfigDevice
             {
                 Name = $"SimHub - {Environment.MachineName} - Track Info",
                 Identifiers = new[] {
-                     $"simhub-track-info-{UserSettings.UserId}"
-                 },
+                        $"simhub-track-info-{UserSettings.UserId}"
+                    },
                 SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _configs.Add("TrackInfoAltitude", new DoubleSensorConfig(ref trackInfoDevice, "Altitude", $"simhub-track-info-altitude-{UserSettings.UserId}", ref _managedMqttClient, "mdi:image-filter-hdr-outline", 0, "m"));
-            _configs.Add("TrackInfoLatitude", new DoubleSensorConfig(ref trackInfoDevice, "Latitude", $"simhub-track-info-latitude-{UserSettings.UserId}", ref _managedMqttClient, "mdi:latitude", 0, "\u00b0"));
-            _configs.Add("TrackInfoLongitude", new DoubleSensorConfig(ref trackInfoDevice, "Longitude", $"simhub-track-info-{UserSettings.UserId}-longitude", ref _managedMqttClient, "mdi:longitude", 0, "\u00b0"));
+            _configs.Add("TrackInfoAltitude", new DoubleSensorConfig(ref trackInfoDevice, "Altitude", $"simhub-track-info-altitude-{UserSettings.UserId}", ref _mqttClient, "mdi:image-filter-hdr-outline", 0, "m"));
+            _configs.Add("TrackInfoLatitude", new DoubleSensorConfig(ref trackInfoDevice, "Latitude", $"simhub-track-info-latitude-{UserSettings.UserId}", ref _mqttClient, "mdi:latitude", 0, "\u00b0"));
+            _configs.Add("TrackInfoLongitude", new DoubleSensorConfig(ref trackInfoDevice, "Longitude", $"simhub-track-info-{UserSettings.UserId}-longitude", ref _mqttClient, "mdi:longitude", 0, "\u00b0"));
+
+            return Task.CompletedTask;
+        }
+
+        private Task mqttClient_DisconnectedAsync(MqttClientDisconnectedEventArgs arg)
+        {
+            _configs = new Dictionary<string, BaseConfig>();
+
+            if (arg.Reason.Equals(MqttClientDisconnectReason.NormalDisconnection))
+            {
+                Logging.Current.Error($"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}");
+                Settings.LastError = $"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}";
+            }
+            else
+            {
+                Logging.Current.Error($"[MQTT] Disconnected from broker: {arg.Exception.Message}");
+                Settings.LastError = $"[MQTT] Disconnected from broker: {arg.Exception.Message}";
+            }
+
+            return Task.CompletedTask;
         }
     }
 }

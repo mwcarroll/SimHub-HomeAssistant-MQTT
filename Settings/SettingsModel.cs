@@ -1,10 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
+using System.Windows;
 
 namespace SimHub.HomeAssistant.MQTT
 {
-    internal class SimHubHomeAssistantMqttPluginUiModel : INotifyPropertyChanged
+    public class SimHubHomeAssistantMqttPluginUiModel : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -12,6 +13,7 @@ namespace SimHub.HomeAssistant.MQTT
         private int _port;
         private string _login;
         private string _password;
+        private string _lastError;
         private Guid _userId;
 
         public string Server
@@ -54,6 +56,16 @@ namespace SimHub.HomeAssistant.MQTT
             }
         }
 
+        public string LastError
+        {
+            get => _lastError;
+            set
+            {
+                _lastError = value;
+                OnPropertyChanged();
+            }
+        }
+
         public Guid UserId
         {
             get => _userId;
@@ -68,5 +80,7 @@ namespace SimHub.HomeAssistant.MQTT
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+
+        public Visibility LastErrorVisible => string.IsNullOrEmpty(_lastError) ? Visibility.Hidden : Visibility.Visible;
     }
 }

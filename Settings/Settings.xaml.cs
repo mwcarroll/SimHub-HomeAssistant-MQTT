@@ -17,6 +17,7 @@ namespace SimHub.HomeAssistant.MQTT.Settings
                 Login = simHubHomeAssistantMqttPlugin.Settings.Login,
                 Password = simHubHomeAssistantMqttPlugin.Settings.Password,
                 UserId = simHubHomeAssistantMqttPlugin.UserSettings.UserId,
+                LastError = SimHubHomeAssistantMqttPlugin.Settings.LastError
             };
 
             DataContext = Model;
@@ -26,12 +27,18 @@ namespace SimHub.HomeAssistant.MQTT.Settings
 
         private SimHubHomeAssistantMqttPlugin SimHubHomeAssistantMqttPlugin { get; }
 
+        public void UpdateLastError()
+        {
+            Model.LastError = SimHubHomeAssistantMqttPlugin.Settings.LastError;
+        }
+
         private void Apply_Settings(object sender, RoutedEventArgs e)
         {
             SimHubHomeAssistantMqttPlugin.Settings.Server = Model.Server;
             SimHubHomeAssistantMqttPlugin.Settings.Port = Model.Port;
             SimHubHomeAssistantMqttPlugin.Settings.Login = Model.Login;
             SimHubHomeAssistantMqttPlugin.Settings.Password = Model.Password;
+            SimHubHomeAssistantMqttPlugin.Settings.LastError = Model.LastError;
 
             SimHubHomeAssistantMqttPlugin.CreateMqttClient();
         }

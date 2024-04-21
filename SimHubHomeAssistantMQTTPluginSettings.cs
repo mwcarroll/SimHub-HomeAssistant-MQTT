@@ -11,6 +11,10 @@ namespace SimHub.HomeAssistant.MQTT
         public string Login { get; set; } = "admin";
 
         public string Password { get; set; } = "admin";
+
+        public string LastError { get { return _lastError ?? string.Empty; } set { _lastError = value; } }
+
+        private string _lastError = string.Empty;
     }
 
     public class SimHubHomeAssistantMQTTPluginUserSettings

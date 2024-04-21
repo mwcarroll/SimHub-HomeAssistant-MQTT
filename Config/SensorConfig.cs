@@ -1,5 +1,5 @@
 ﻿using System;
-using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Client;
 
 namespace SimHub.HomeAssistant.MQTT.Config
 {
@@ -9,8 +9,8 @@ namespace SimHub.HomeAssistant.MQTT.Config
         public override object EmptyValue { get; }
         public override Type ValueType => typeof(string);
 
-        public SensorConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IManagedMqttClient managedMqttClient, string icon = null, string emptyValue = null) :
-            base(ref device, name, uniqueId, ref managedMqttClient, icon)
+        public SensorConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IMqttClient mqttClient, string icon = null, string emptyValue = null) :
+            base(ref device, name, uniqueId, ref mqttClient, icon)
         {
             EmptyValue = emptyValue;
             

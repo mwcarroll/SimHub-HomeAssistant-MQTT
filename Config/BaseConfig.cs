@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using MQTTnet;
-using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Client;
 using Newtonsoft.Json;
 
 namespace SimHub.HomeAssistant.MQTT.Config
@@ -54,14 +54,14 @@ namespace SimHub.HomeAssistant.MQTT.Config
         public string Icon { get; private set; }
 
         [JsonIgnore]
-        public IManagedMqttClient ManagedMqttClient { get; private set; }
+        public IMqttClient MqttClient { get; private set; }
 
-        protected BaseConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IManagedMqttClient managedMqttClient, string icon = null)
+        protected BaseConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IMqttClient mqttClient, string icon = null)
         {
             Device = device;
             Name = name;
             UniqueId = uniqueId;
-            ManagedMqttClient = managedMqttClient;
+            MqttClient = mqttClient;
 
             Icon = icon;
         }
@@ -76,13 +76,13 @@ namespace SimHub.HomeAssistant.MQTT.Config
             Logging.Current.Info($"Informed: {ConfigTopic}");
 
             // send inform to home assistant
-            ManagedMqttClient.EnqueueAsync(mqttApplicationMessage).Wait();
+            MqttClient.PublishAsync(mqttApplicationMessage).Wait();
             UpdateSensorAvailability(true);
         }
 
         public void UpdateSensorState(object newState)
         {
-            if(!ManagedMqttClient.IsStarted || !ManagedMqttClient.IsConnected)
+            if(!MqttClient.IsConnected)
             {
                 // TODO: inform the user that the MQTT connection is not established
                 return;
@@ -93,7 +93,7 @@ namespace SimHub.HomeAssistant.MQTT.Config
                 newState = (bool)newState ? ((BinarySensorConfig)this).PayloadOn : ((BinarySensorConfig)this).PayloadOff;
             }
 
-            Task.Run(async () => await ManagedMqttClient.EnqueueAsync(
+            Task.Run(async () => await MqttClient.PublishAsync(
                     new MqttApplicationMessageBuilder()
                         .WithTopic(StateTopic)
                         .WithPayload(JsonConvert.SerializeObject(new { state = newState }))
@@ -104,7 +104,7 @@ namespace SimHub.HomeAssistant.MQTT.Config
 
         public void UpdateSensorAvailability(bool availability)
         {
-            ManagedMqttClient.EnqueueAsync(
+            MqttClient.PublishAsync(
                 new MqttApplicationMessageBuilder()
                     .WithTopic(Availabilty.Topic)
                     .WithPayload(availability ? "online" : "offline")

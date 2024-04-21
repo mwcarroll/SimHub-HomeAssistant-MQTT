@@ -1,5 +1,5 @@
 ﻿using System;
-using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Client;
 using Newtonsoft.Json;
 
 namespace SimHub.HomeAssistant.MQTT.Config.SensorConfigs
@@ -13,8 +13,8 @@ namespace SimHub.HomeAssistant.MQTT.Config.SensorConfigs
         public override object EmptyValue { get; }
         public override Type ValueType => typeof(int?);
 
-        public IntegerSensorConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IManagedMqttClient managedMqttClient, string icon = null, int? emptyValue = null, string unitOfMeasurement = null) :
-            base(ref device, name, uniqueId, ref managedMqttClient, icon)
+        public IntegerSensorConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IMqttClient mqttClient, string icon = null, int? emptyValue = null, string unitOfMeasurement = null) :
+            base(ref device, name, uniqueId, ref mqttClient, icon)
         {
             EmptyValue = emptyValue;
             UnitOfMeasurement = unitOfMeasurement;
