@@ -9,7 +9,9 @@ using IRacingReader;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
-using Newtonsoft.Json;
+using SimHub.HomeAssistant.MQTT.Config;
+using SimHub.HomeAssistant.MQTT.Config.Derivatives;
+using SimHub.HomeAssistant.MQTT.Config.Derivatives.Numbers;
 using SimHub.HomeAssistant.MQTT.Properties;
 using SimHub.HomeAssistant.MQTT.Settings;
 using SimHub.Plugins;
@@ -31,7 +33,7 @@ namespace SimHub.HomeAssistant.MQTT
         private MqttFactory _mqttFactory;
         private IManagedMqttClient _mqttClient;
 
-        private readonly Dictionary<string, SensorConfig> _sensorConfigs = new Dictionary<string, SensorConfig>();
+        private Dictionary<string, DiscoveryConfig> _configs = new Dictionary<string, DiscoveryConfig>();
 
         /// <summary>
         /// Instance of the current plugin manager
@@ -62,9 +64,17 @@ namespace SimHub.HomeAssistant.MQTT
         public void DataUpdate(PluginManager pluginManager, ref GameData data)
         {
             // TODO: remove later... just testing sending "devices"
-            foreach (KeyValuePair<string, SensorConfig> kvp in _sensorConfigs)
+            foreach (KeyValuePair<string, DiscoveryConfig> kvp in _configs)
             {
-                kvp.Value.UpdateSensorState(counter, _mqttClient);
+                if(kvp.Value.GetType() == typeof(BinarySensorConfig))
+                {
+                    kvp.Value.UpdateSensorState(counter % 10 == 0 ? "ON" : "OFF");
+                }
+                else
+                {
+                    kvp.Value.UpdateSensorState(counter);
+                }
+
                 counter++;
             }
 
@@ -86,10 +96,9 @@ namespace SimHub.HomeAssistant.MQTT
 
             DateTime inSimTime = DateTime.Parse($"{sessionStartDay} {sessionStartTime}").AddSeconds((int)(sessionTimePrecise * earthRotationSpeedupFactor));
 
-            _sensorConfigs["SessionInSimTime"].UpdateSensorState(inSimTime, _mqttClient);
+            _configs["SessionInSimTime"].UpdateSensorState(inSimTime);
 
             #endregion
-
 
             #region UpdateWhenDifferent
 
@@ -97,54 +106,72 @@ namespace SimHub.HomeAssistant.MQTT
 
             if (!updateAll)
             {
-                DataSampleEx oldIrData = data.NewData.GetRawDataObject() as DataSampleEx;
+                DataSampleEx oldIrData = data.OldData.GetRawDataObject() as DataSampleEx;
+
+                bool oldDriverIsInCar = oldIrData.Telemetry.DriverMarker;
+                bool newDriverIsInCar = irData.Telemetry.DriverMarker;
+                if (!oldDriverIsInCar.Equals(newDriverIsInCar))
+                {
+                    _configs["DriverInfoIsInCar"].UpdateSensorState(newDriverIsInCar);
+                }
+
+                //GameRawData.Telemetry.IsReplayPlaying
+                bool oldDriverIsInReplay = oldIrData.Telemetry.IsReplayPlaying;
+                bool newDriverIsInReplay = irData.Telemetry.IsReplayPlaying;
+                if (!oldDriverIsInReplay.Equals(newDriverIsInReplay))
+                {
+                    _configs["DriverInfoIsInReplay"].UpdateSensorState(newDriverIsInReplay);
+                }
 
                 string oldSessionType = oldIrData?.SessionData.WeekendInfo.EventType ?? "Unknown";
                 string newSessionType = irData.SessionData.WeekendInfo.EventType ?? "Unknown";
                 if (!oldSessionType.Equals(newSessionType))
                 {
-                    _sensorConfigs["SessionType"].UpdateSensorState(newSessionType, _mqttClient);
+                    _configs["SessionType"].UpdateSensorState(newSessionType);
                 }
 
                 bool oldIsSessionOfficial = ((string)oldIrData?.SessionDataDict["WeekendInfo.Official"] ?? "2").Equals("1");
                 bool newIsSessionOfficial = ((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1");
                 if (!oldIsSessionOfficial.Equals(newIsSessionOfficial))
                 {
-                    _sensorConfigs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial, _mqttClient);
+                    _configs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial);
                 }
 
                 int oldSessionLeagueId = int.Parse((string)oldIrData?.SessionDataDict["WeekendInfo.LeagueID"] ?? "0");
                 int newSessionLeagueId = int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]);
                 if (!oldSessionLeagueId.Equals(newSessionLeagueId))
                 {
-                    _sensorConfigs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId, _mqttClient);
+                    _configs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId);
                 }
 
                 string oldTrackAltitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackAltitude"] ?? "0").Replace(" m", "");
                 string newTrackAltitude = ((string)irData.SessionDataDict["WeekendInfo.TrackAltitude"]).Replace(" m", "");
                 if (!oldTrackAltitude.Equals(newTrackAltitude))
                 {
-                    _sensorConfigs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude, _mqttClient);
+                    _configs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude);
                 }
 
                 string oldTrackLatitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLatitude"] ?? "0").Replace(" m", "");
                 string newTrackLatitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", "");
                 if (!oldTrackLatitude.Equals(newTrackLatitude))
                 {
-                    _sensorConfigs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude, _mqttClient);
+                    _configs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude);
                 }
 
                 string oldTrackLongitude = ((string)oldIrData?.SessionDataDict["WeekendInfo.TrackLongitude"] ?? "0").Replace(" m", "");
                 string newTrackLongitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", "");
                 if (!oldTrackLongitude.Equals(newTrackLongitude))
                 {
-                    _sensorConfigs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude, _mqttClient);
+                    _configs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude);
                 }
 
                 _iRacingNewSession = false;
             }
             else
             {
+                bool newDriverIsInCar = irData.Telemetry.DriverMarker;
+                bool newDriverIsInReplay = irData.Telemetry.IsReplayPlaying;
+
                 string newSessionType = irData.SessionData.WeekendInfo.EventType ?? "Unknown";
                 bool newIsSessionOfficial = ((string)irData.SessionDataDict["WeekendInfo.Official"]).Equals("1");
                 int newSessionLeagueId = int.Parse((string)irData.SessionDataDict["WeekendInfo.LeagueID"]);
@@ -153,13 +180,16 @@ namespace SimHub.HomeAssistant.MQTT
                 string newTrackLatitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLatitude"]).Replace(" m", "");
                 string newTrackLongitude = ((string)irData.SessionDataDict["WeekendInfo.TrackLongitude"]).Replace(" m", "");
 
-                _sensorConfigs["SessionType"].UpdateSensorState(newSessionType, _mqttClient);
-                _sensorConfigs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial, _mqttClient);
-                _sensorConfigs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId, _mqttClient);
+                _configs["DriverInfoIsInCar"].UpdateSensorState(newDriverIsInCar);
+                _configs["DriverInfoIsInReplay"].UpdateSensorState(newDriverIsInReplay);
 
-                _sensorConfigs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude, _mqttClient);
-                _sensorConfigs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude, _mqttClient);
-                _sensorConfigs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude, _mqttClient);
+                _configs["SessionType"].UpdateSensorState(newSessionType);
+                _configs["SessionIsOfficial"].UpdateSensorState(newIsSessionOfficial);
+                _configs["SessionLeagueId"].UpdateSensorState(newSessionLeagueId);
+
+                _configs["TrackInfoAltitude"].UpdateSensorState(newTrackAltitude);
+                _configs["TrackInfoLatitude"].UpdateSensorState(newTrackLatitude);
+                _configs["TrackInfoLongitude"].UpdateSensorState(newTrackLongitude);
             }
 
             #endregion
@@ -176,11 +206,15 @@ namespace SimHub.HomeAssistant.MQTT
             this.SaveCommonSettings("GeneralSettings", Settings);
             this.SaveCommonSettings("UserSettings", UserSettings);
 
-            foreach (KeyValuePair<string, SensorConfig> kvp in _sensorConfigs)
+            foreach (KeyValuePair<string, DiscoveryConfig> kvp in _configs)
             {
-                kvp.Value.UpdateSensorState(null, _mqttClient);
+                if (kvp.Value.ManagedMqttClient.IsStarted && kvp.Value.ManagedMqttClient.IsConnected)
+                {
+                    kvp.Value.UpdateSensorState(false);
+                }
             }
 
+            _mqttClient.StopAsync();
             _mqttClient.Dispose();
         }
 
@@ -212,6 +246,7 @@ namespace SimHub.HomeAssistant.MQTT
 
         internal void CreateMqttClient()
         {
+            _configs = new Dictionary<string, DiscoveryConfig>();
             _mqttFactory = new MqttFactory();
             _mqttClient = _mqttFactory.CreateManagedMqttClient();
 
@@ -228,137 +263,45 @@ namespace SimHub.HomeAssistant.MQTT
             _mqttClient.StartAsync(managedMqttClientOptions);
 
             // create sensor configs - auto publish for home assistant visibility
+
+            Device driverInfoDevice = new Device
+            {
+                Name = $"SimHub - {Environment.MachineName} - Driver Info",
+                Identifiers = new[] {
+                    $"simhub-driver-info-{UserSettings.UserId}"
+                },
+                SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
+            };
+
+            _configs.Add("DriverInfoIsInCar", new BinarySensorConfig(driverInfoDevice, "Is In Car", $"{UserSettings.UserId}-is-in-car", _mqttClient, "mdi:car-select", false));
+            _configs.Add("DriverInfoIsInReplay", new BinarySensorConfig(driverInfoDevice, "Is In Replay", $"{UserSettings.UserId}-is-in-car", _mqttClient, "mdi:movie-open-outline", false));
+
             Device sessionInfoDevice = new Device
             {
                 Name = $"SimHub - {Environment.MachineName} - Session Info",
-                Identifiers = new string[] {
+                Identifiers = new[] {
                     $"simhub-session-info-{UserSettings.UserId}"
                 },
                 SimHubVersion = (string) PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _sensorConfigs.Add("SessionInfoType", SensorConfig.CreateInstance(sessionInfoDevice, "Session Type", $"simhub-session-info-{UserSettings.UserId}-type", _mqttClient));
-            _sensorConfigs.Add("SessionInfoInSimTime", SensorConfig.CreateInstance(sessionInfoDevice, "In-Sim DateTime", $"simhub-session-info-{UserSettings.UserId}-in-sim-datetime", _mqttClient));
-            _sensorConfigs.Add("SessionInfoIsOfficial", SensorConfig.CreateInstance(sessionInfoDevice, "Is Official", $"simhub-session-info-{UserSettings.UserId}-is-session-official", _mqttClient));
-            _sensorConfigs.Add("SessionInfoLeagueId", SensorConfig.CreateInstance(sessionInfoDevice, "League Id", $"simhub-session-info-{UserSettings.UserId}-league-id", _mqttClient));
+            _configs.Add("SessionInfoType", new SensorConfig(sessionInfoDevice, "Session Type", $"{UserSettings.UserId}-type", _mqttClient, "mdi:form-select"));
+            _configs.Add("SessionInfoInSimTime", new SensorConfig(sessionInfoDevice, "In-Sim DateTime", $"{UserSettings.UserId}-in-sim-datetime", _mqttClient, "mdi:clipboard-text-clock-outline"));
+            _configs.Add("SessionInfoIsOfficial", new BinarySensorConfig(sessionInfoDevice, "Is Official", $"{UserSettings.UserId}-is-session-official", _mqttClient, "mdi:flag-outline", false, "opening"));
+            _configs.Add("SessionInfoLeagueId", new IntegerNumberConfig(sessionInfoDevice, "League Id", $"{UserSettings.UserId}-league-id", _mqttClient, "mdi:identifier", 0));
 
             Device trackInfoDevice = new Device
             {
                 Name = $"SimHub - {Environment.MachineName} - Track Info",
-                Identifiers = new string[] {
-                    $"simhub-track-info-{UserSettings.UserId}"
-                },
-                SimHubVersion = (string) PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
+                Identifiers = new[] {
+                     $"simhub-track-info-{UserSettings.UserId}"
+                 },
+                SimHubVersion = (string)PluginManager.GetPropertyValue("DataCorePlugin.SimHubVersion")
             };
 
-            _sensorConfigs.Add("TrackInfoAltitude", SensorConfig.CreateInstance(trackInfoDevice, "Altitude", $"simhub-track-info-altitude-{UserSettings.UserId}", _mqttClient));
-            _sensorConfigs.Add("TrackInfoLatitude", SensorConfig.CreateInstance(trackInfoDevice, "Latitude", $"simhub-track-info-latitude-{UserSettings.UserId}", _mqttClient));
-            _sensorConfigs.Add("TrackInfoLongitude", SensorConfig.CreateInstance(trackInfoDevice, "Longitude", $"simhub-track-info-{UserSettings.UserId}-longitude", _mqttClient));
-
-            // initialize values as "none"
-            foreach (KeyValuePair<string, SensorConfig> kvp in _sensorConfigs)
-            {
-                Logging.Current.Debug($"SimHub.HomeAssistant.MQTT - Updating Sensor {kvp.Key}...");
-                kvp.Value.UpdateSensorState("unknown", _mqttClient);
-            }
+            _configs.Add("TrackInfoAltitude", new DoubleNumberConfig(trackInfoDevice, "Altitude", $"simhub-track-info-altitude-{UserSettings.UserId}", _mqttClient, "mdi:image-filter-hdr-outline", 0, "m"));
+            _configs.Add("TrackInfoLatitude", new DoubleNumberConfig(trackInfoDevice, "Latitude", $"simhub-track-info-latitude-{UserSettings.UserId}", _mqttClient, "mdi:latitude", 0, "\u00b0"));
+            _configs.Add("TrackInfoLongitude", new DoubleNumberConfig(trackInfoDevice, "Longitude", $"simhub-track-info-{UserSettings.UserId}-longitude", _mqttClient, "mdi:longitude", 0, "\u00b0"));
         }
-    }
-
-    public class SensorConfig
-    {
-        [JsonProperty("device")]
-        public Device Device { get; set; }
-
-        [JsonProperty("component")]
-        public string Component = "sensor";
-
-        [JsonProperty("state_topic")]
-
-        public string StateTopic => $"homeassistant/{this.Component}/{this.UniqueId}/state";
-
-        [JsonProperty("value_template")]
-        public string ValueTemplate = "{{ value_json.value }}";
-
-        [JsonProperty("name")]
-        public string Name;
-
-        [JsonProperty("unique_id")]
-        public string UniqueId;
-
-        private SensorConfig(Device device, string name, string uniqueId)
-        {
-            Device = device;
-            Name = name;
-            UniqueId = uniqueId;
-        }
-
-        public static SensorConfig CreateInstance(Device device, string name, string uniqueId, IManagedMqttClient mqttClient)
-        {
-            SensorConfig sensorConfig = new SensorConfig(device, name, uniqueId);
-
-            MqttApplicationMessage raceTimeConfigMessage = new MqttApplicationMessageBuilder()
-                .WithTopic($"homeassistant/{sensorConfig.Component}/{sensorConfig.UniqueId}/config")
-                .WithRetainFlag()
-                .WithPayload(
-                    JsonConvert.SerializeObject(
-                        sensorConfig,
-                        Formatting.Indented,
-                        new JsonSerializerSettings
-                        {
-                            NullValueHandling = NullValueHandling.Ignore
-                        }
-                    )
-                )
-                .Build();
-
-            Logging.Current.Info(
-                    JsonConvert.SerializeObject(
-                        sensorConfig,
-                        Formatting.Indented,
-                        new JsonSerializerSettings
-                        {
-                            NullValueHandling = NullValueHandling.Ignore
-                        }
-                    )
-                );
-
-            // send inform to home assistant
-            Task.Run(async () => await mqttClient.EnqueueAsync(raceTimeConfigMessage)).Wait();
-
-            return sensorConfig;
-        }
-
-        public void UpdateSensorState(object newState, IManagedMqttClient mqttClient)
-        {
-            Task.Run(async () => await mqttClient.EnqueueAsync(new MqttApplicationMessageBuilder()
-                .WithTopic(this.StateTopic)
-                .WithPayload(JsonConvert.SerializeObject(new { value = newState }))
-                .Build())
-            );
-        }
-    }
-
-    public class Device
-    {
-        [JsonProperty("identifiers")]
-        public string[] Identifiers { get; set; }
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("manufacturer")]
-        public string Manufacturer => "github.com/mwcarroll";
-
-        [JsonProperty("sw_version")]
-        public string SoftwareVersion => "0.0.1";
-
-        [JsonProperty("configuration_url")]
-        public string ConfigurationUrl => "https://github.com/mwcarroll/SimHub-HomeAssistant-MQTT";
-
-        [JsonProperty("model")]
-        public string Model => $"SimHub {SimHubVersion}";
-
-        [JsonIgnore]
-        public string SimHubVersion { get; set; }
     }
 }

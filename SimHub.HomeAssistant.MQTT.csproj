@@ -45,7 +45,7 @@
       <HintPath>$(SIMHUB_INSTALL_PATH)GongSolutions.WPF.DragDrop.dll</HintPath>
     </Reference>
     <Reference Include="ICarsReader">
-      <HintPath>..\..\ICarsReader.dll</HintPath>
+      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\ICarsReader.dll</HintPath>
     </Reference>
     <Reference Include="InputManagerCS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -115,6 +115,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Config\Derivatives\BinarySensorConfig.cs" />
+    <Compile Include="Config\Derivatives\Numbers\DoubleNumberConfig.cs" />
+    <Compile Include="Config\Derivatives\Numbers\IntegerNumberConfig.cs" />
+    <Compile Include="Config\Derivatives\SensorConfig.cs" />
+    <Compile Include="Config\Device.cs" />
+    <Compile Include="Config\DiscoveryConfig.cs" />
     <Compile Include="Settings\SettingsModel.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPlugin.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPluginSettings.cs" />
@@ -140,7 +146,6 @@
     </Page>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Resources\MQTTMenuIcon.png" />
     <None Include="Resources\SH.HA.MQTT-MenuIcon.png" />
   </ItemGroup>
   <ItemGroup>

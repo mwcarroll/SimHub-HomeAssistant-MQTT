@@ -39,7 +39,7 @@
                 <Label Grid.Row="4" Grid.Column="0">Unique Connection ID (readonly)</Label>
                 <TextBox Margin="4" Grid.Row="4" Grid.Column="1" Text="{Binding Path=UserId}" IsReadOnly="true" />
 
-                <styles:SHButtonPrimary Margin="4" Grid.Row="5" Grid.Column="0" Click="Apply_Settings">Apply setting</styles:SHButtonPrimary>
+                <styles:SHButtonPrimary Margin="4" Grid.Row="5" Grid.Column="0" Click="Apply_Settings">Apply settings</styles:SHButtonPrimary>
             </Grid>
         </styles:SHSection>
     </Grid>
