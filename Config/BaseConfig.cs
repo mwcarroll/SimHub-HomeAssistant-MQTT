@@ -6,22 +6,28 @@ using Newtonsoft.Json;
 
 namespace SimHub.HomeAssistant.MQTT.Config
 {
+    public class BaseConfigAvailability
+    {
+        [JsonProperty("topic")]
+        public string Topic { get; set; }
+    }
+
     public abstract class BaseConfig
     {
         [JsonProperty("device")]
         public BaseConfigDevice Device { get; private set; }
 
+        [JsonProperty("availability")]
+        public BaseConfigAvailability Availabilty => new BaseConfigAvailability() { Topic = $"homeassistant/{Component}/{UniqueId}/state" };
+
         [JsonIgnore]
         public abstract string Component { get; }
-        
+
         [JsonIgnore]
         public abstract object EmptyValue { get; }
-        
+
         [JsonIgnore]
         public abstract Type ValueType { get; }
-
-        [JsonProperty("retain")]
-        public bool Retain => true;
 
         [JsonIgnore]
         public string ConfigTopic => $"homeassistant/{Component}/{UniqueId}/config";
@@ -29,29 +35,28 @@ namespace SimHub.HomeAssistant.MQTT.Config
         [JsonProperty("state_topic")]
         public string StateTopic => $"homeassistant/{Component}/{UniqueId}/state";
 
-
         [JsonProperty("value_template")]
         public string ValueTemplate = "{{ value_json.state }}";
 
         [JsonProperty("name")]
         public string Name { get; private set; }
 
+        private string uniqueId;
+
         [JsonProperty("unique_id")]
         public string UniqueId
         {
             get { return $"{Device.Identifiers[0]}-{Component}-{uniqueId}"; }
-            private set { uniqueId = value ; }
+            private set { uniqueId = value; }
         }
 
         [JsonProperty("icon")]
         public string Icon { get; private set; }
 
-        private string uniqueId;
-
         [JsonIgnore]
         public IManagedMqttClient ManagedMqttClient { get; private set; }
 
-        protected BaseConfig(BaseConfigDevice device, string name, string uniqueId, IManagedMqttClient managedMqttClient, string icon = null)
+        protected BaseConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IManagedMqttClient managedMqttClient, string icon = null)
         {
             Device = device;
             Name = name;
@@ -72,7 +77,8 @@ namespace SimHub.HomeAssistant.MQTT.Config
             Logging.Current.Info(JsonConvert.SerializeObject(this, Formatting.Indented));
 
             // send inform to home assistant
-            Task.Run(async () => await ManagedMqttClient.EnqueueAsync(mqttApplicationMessage)).Wait();
+            ManagedMqttClient.EnqueueAsync(mqttApplicationMessage).Wait();
+            UpdateSensorAvailability(true);
         }
 
         public void UpdateSensorState(object newState)
@@ -88,10 +94,22 @@ namespace SimHub.HomeAssistant.MQTT.Config
                 newState = (bool)newState ? ((BinarySensorConfig)this).PayloadOn : ((BinarySensorConfig)this).PayloadOff;
             }
 
-            Task.Run(async () => await ManagedMqttClient.EnqueueAsync(new MqttApplicationMessageBuilder()
-                .WithTopic(StateTopic)
-                .WithPayload(JsonConvert.SerializeObject(new { state = newState }))
-                .Build())
+            Task.Run(async () => await ManagedMqttClient.EnqueueAsync(
+                    new MqttApplicationMessageBuilder()
+                        .WithTopic(StateTopic)
+                        .WithPayload(JsonConvert.SerializeObject(new { state = newState }))
+                        .Build()
+                )
+            );
+        }
+
+        public void UpdateSensorAvailability(bool availability)
+        {
+            ManagedMqttClient.EnqueueAsync(
+                new MqttApplicationMessageBuilder()
+                    .WithTopic(Availabilty.Topic)
+                    .WithPayload(availability ? "online" : "offline")
+                    .Build()
             );
         }
     }

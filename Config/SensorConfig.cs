@@ -9,8 +9,8 @@ namespace SimHub.HomeAssistant.MQTT.Config
         public override object EmptyValue { get; }
         public override Type ValueType => typeof(string);
 
-        public SensorConfig(BaseConfigDevice device, string name, string uniqueId, IManagedMqttClient mqttClient, string icon = null, string emptyValue = null) :
-            base(device, name, uniqueId, mqttClient, icon)
+        public SensorConfig(ref BaseConfigDevice device, string name, string uniqueId, ref IManagedMqttClient managedMqttClient, string icon = null, string emptyValue = null) :
+            base(ref device, name, uniqueId, ref managedMqttClient, icon)
         {
             EmptyValue = emptyValue;
             

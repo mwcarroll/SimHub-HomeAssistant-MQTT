@@ -119,8 +119,8 @@
     <Compile Include="Config\SensorConfigs\DoubleSensorConfig.cs" />
     <Compile Include="Config\SensorConfigs\IntegerSensorConfig.cs" />
     <Compile Include="Config\SensorConfig.cs" />
-    <Compile Include="Config\Device.cs" />
-    <Compile Include="Config\DiscoveryConfig.cs" />
+    <Compile Include="Config\BaseConfigDevice.cs" />
+    <Compile Include="Config\BaseConfig.cs" />
     <Compile Include="Settings\SettingsModel.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPlugin.cs" />
     <Compile Include="SimHubHomeAssistantMQTTPluginSettings.cs" />
