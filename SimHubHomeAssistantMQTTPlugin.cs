@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using GameReaderCommon;
@@ -240,6 +241,8 @@ namespace SimHub.HomeAssistant.MQTT
             _mqttClient = null;
         }
 
+        private Control wpfSettingsControl;
+
         /// <summary>
         /// Returns the settings control, return null if no settings control is required
         /// </summary>
@@ -247,7 +250,12 @@ namespace SimHub.HomeAssistant.MQTT
         /// <returns></returns>
         public Control GetWPFSettingsControl(PluginManager pluginManager)
         {
-            return new SimHubHomeAssistantMqttPluginUi(this);
+            if(wpfSettingsControl == null)
+            {
+                wpfSettingsControl = new SimHubHomeAssistantMqttPluginUi(this);
+            }
+
+            return wpfSettingsControl;
         }
 
         /// <summary>
@@ -300,6 +308,11 @@ namespace SimHub.HomeAssistant.MQTT
 
                 Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
                 Settings.LastError = ex.Message.ToString();
+
+                Application.Current.Dispatcher.Invoke(delegate
+                {
+                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                });
             }
             catch (Exception ex)
             {
@@ -307,12 +320,22 @@ namespace SimHub.HomeAssistant.MQTT
 
                 Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
                 Settings.LastError = ex.Message.ToString();
+
+                Application.Current.Dispatcher.Invoke(delegate
+                {
+                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                });
             }
         }
 
         private Task mqttClient_ConnectedAsync(MqttClientConnectedEventArgs arg)
         {
-            Settings.LastError = string.Empty;
+            Settings.LastError = "None";
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+            });
+
 
             // create sensor configs - auto publish for home assistant visibility
             BaseConfigDevice driverInfoDevice = new BaseConfigDevice
@@ -366,12 +389,18 @@ namespace SimHub.HomeAssistant.MQTT
             {
                 Logging.Current.Error($"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}");
                 Settings.LastError = $"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}";
+
             }
             else
             {
                 Logging.Current.Error($"[MQTT] Disconnected from broker: {arg.Exception.Message}");
                 Settings.LastError = $"[MQTT] Disconnected from broker: {arg.Exception.Message}";
             }
+
+            Application.Current.Dispatcher.Invoke(delegate
+            {
+                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+            });
 
             return Task.CompletedTask;
         }

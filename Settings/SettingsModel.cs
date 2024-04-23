@@ -14,7 +14,9 @@ namespace SimHub.HomeAssistant.MQTT
         private string _login;
         private string _password;
         private string _lastError;
+        private Visibility _lastErrorVisibility;
         private Guid _userId;
+        
 
         public string Server
         {
@@ -72,6 +74,7 @@ namespace SimHub.HomeAssistant.MQTT
             set
             {
                 _userId = value;
+                
                 OnPropertyChanged();
             }
         }
@@ -80,7 +83,5 @@ namespace SimHub.HomeAssistant.MQTT
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
-
-        public Visibility LastErrorVisible => string.IsNullOrEmpty(_lastError) ? Visibility.Hidden : Visibility.Visible;
     }
 }
