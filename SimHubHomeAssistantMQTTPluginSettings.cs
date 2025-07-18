@@ -2,6 +2,7 @@
 
 namespace SimHub.HomeAssistant.MQTT
 {
+    // ReSharper disable once InconsistentNaming
     public class SimHubHomeAssistantMQTTPluginSettings
     {
         public string Server { get; set; } = "localhost";
@@ -17,6 +18,7 @@ namespace SimHub.HomeAssistant.MQTT
         private string _lastError = string.Empty;
     }
 
+    // ReSharper disable once InconsistentNaming
     public class SimHubHomeAssistantMQTTPluginUserSettings
     {
         public Guid UserId { get; set; } = Guid.NewGuid();
