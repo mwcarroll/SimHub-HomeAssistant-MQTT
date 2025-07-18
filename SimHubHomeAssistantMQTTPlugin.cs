@@ -39,13 +39,13 @@ namespace SimHub.HomeAssistant.MQTT
         /// </summary>
         public PluginManager PluginManager { get; set; }
 
-        /// <summary>a
+        /// <summary>
         /// Gets the left menu icon. Icon must be 24x24 and compatible with black and white display.
         /// </summary>
         public ImageSource PictureIcon => this.ToIcon(Resources.SH_HA_MQTT_MenuIcon);
 
         /// <summary>
-        /// Gets a short plugin title to show in left menu. Return null if you want to use the title as defined in PluginName attribute.
+        /// Gets a short plugin title to show in the left menu. Return null if you want to use the title as defined in PluginName attribute.
         /// </summary>
         public string LeftMenuTitle => "HomeAssistant MQTT Publisher";
 
@@ -56,8 +56,7 @@ namespace SimHub.HomeAssistant.MQTT
         /// Called one time per game data update, contains all normalized game data,
         /// raw data are intentionally "hidden" under a generic object type (A plugin SHOULD NOT USE IT)
         ///
-        /// This method is on the critical path, it must execute as fast as possible and avoid throwing any error
-        ///
+        /// This method is on the critical path, it must execute as fast as possible and avoid throwing any error.
         /// </summary>
         /// <param name="pluginManager"></param>
         /// <param name="data">Current game data, including current and previous data frame.</param>
@@ -206,7 +205,7 @@ namespace SimHub.HomeAssistant.MQTT
         }
 
         /// <summary>
-        /// Called at plugin manager stop, close/dispose anything needed here !
+        /// Called at plugin manager stop, close/dispose anything needed here!
         /// Plugins are rebuilt at game change
         /// </summary>
         /// <param name="pluginManager"></param>
@@ -246,7 +245,7 @@ namespace SimHub.HomeAssistant.MQTT
         }
 
         /// <summary>
-        /// Called once after plugins startup
+        /// Called once after plugin's startup
         /// Plugins are rebuilt at game change
         /// </summary>
         /// <param name="pluginManager"></param>
@@ -284,10 +283,7 @@ namespace SimHub.HomeAssistant.MQTT
                 IMqttClient oldMqttClient = _mqttClient;
                 _mqttClient = newMqttClient;
 
-                if (oldMqttClient != null)
-                {
-                    oldMqttClient.Dispose();
-                }
+                oldMqttClient?.Dispose();
             }
             catch (MqttCommunicationException ex)
             {
@@ -322,7 +318,6 @@ namespace SimHub.HomeAssistant.MQTT
             {
                 (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi)?.UpdateLastError();
             });
-
 
             // create sensor configs - auto publish for home assistant visibility
             BaseConfigDevice driverInfoDevice = new BaseConfigDevice
@@ -376,7 +371,6 @@ namespace SimHub.HomeAssistant.MQTT
             {
                 Logging.Current.Error($"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}");
                 Settings.LastError = $"[MQTT] Disconnected from broker: {arg.ConnectResult.ResultCode}";
-
             }
             else
             {
