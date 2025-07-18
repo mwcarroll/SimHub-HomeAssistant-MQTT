@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -48,8 +49,8 @@ namespace SimHub.HomeAssistant.MQTT
         /// </summary>
         public string LeftMenuTitle => "HomeAssistant MQTT Publisher";
 
-        private int counter = 1;
-        private bool iRacingAlreadyInitialized = false;
+        private int _counter = 1;
+        private bool _iRacingAlreadyInitialized = false;
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data,
@@ -74,23 +75,20 @@ namespace SimHub.HomeAssistant.MQTT
 
             if (!data.GameRunning || data.GameName.ToUpper() != "IRACING")
             {
-                iRacingAlreadyInitialized = false;
+                _iRacingAlreadyInitialized = false;
 
-                if (counter == 60)
+                if (_counter == 60)
                 {
-                    foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
+                    foreach (KeyValuePair<string, BaseConfig> kvp in _configs.Where(kvp => kvp.Value.MqttClient.IsConnected))
                     {
-                        if (kvp.Value.MqttClient.IsConnected)
-                        {
-                            kvp.Value.UpdateSensorAvailability(false);
-                        }
+                        kvp.Value.UpdateSensorAvailability(false);
                     }
 
-                    counter = 1;
+                    _counter = 1;
                 }
                 else
                 {
-                    counter++;
+                    _counter++;
                 }
 
                 return;
@@ -99,17 +97,14 @@ namespace SimHub.HomeAssistant.MQTT
             if (!(data.NewData.GetRawDataObject() is DataSampleEx irData)) return;
 
             // mark sensors as available
-            if (!iRacingAlreadyInitialized)
+            if (!_iRacingAlreadyInitialized)
             {
-                foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
+                foreach (KeyValuePair<string, BaseConfig> kvp in _configs.Where(kvp => kvp.Value.MqttClient.IsConnected))
                 {
-                    if (kvp.Value.MqttClient.IsConnected)
-                    {
-                        kvp.Value.UpdateSensorAvailability(true);
-                    }
+                    kvp.Value.UpdateSensorAvailability(true);
                 }
 
-                iRacingAlreadyInitialized = true;
+                _iRacingAlreadyInitialized = true;
             }
 
             #region UpdateEveryTick
@@ -221,12 +216,9 @@ namespace SimHub.HomeAssistant.MQTT
             this.SaveCommonSettings("GeneralSettings", Settings);
             this.SaveCommonSettings("UserSettings", UserSettings);
 
-            foreach (KeyValuePair<string, BaseConfig> kvp in _configs)
+            foreach (KeyValuePair<string, BaseConfig> kvp in _configs.Where(kvp => kvp.Value.MqttClient.IsConnected))
             {
-                if (kvp.Value.MqttClient.IsConnected)
-                {
-                    kvp.Value.UpdateSensorAvailability(false);
-                }
+                kvp.Value.UpdateSensorAvailability(false);
             }
 
             _configs = null;
@@ -241,7 +233,7 @@ namespace SimHub.HomeAssistant.MQTT
             _mqttClient = null;
         }
 
-        private Control wpfSettingsControl;
+        private Control _wpfSettingsControl;
 
         /// <summary>
         /// Returns the settings control, return null if no settings control is required
@@ -250,12 +242,7 @@ namespace SimHub.HomeAssistant.MQTT
         /// <returns></returns>
         public Control GetWPFSettingsControl(PluginManager pluginManager)
         {
-            if(wpfSettingsControl == null)
-            {
-                wpfSettingsControl = new SimHubHomeAssistantMqttPluginUi(this);
-            }
-
-            return wpfSettingsControl;
+            return _wpfSettingsControl ?? (_wpfSettingsControl = new SimHubHomeAssistantMqttPluginUi(this));
         }
 
         /// <summary>
@@ -311,7 +298,7 @@ namespace SimHub.HomeAssistant.MQTT
 
                 Application.Current.Dispatcher.Invoke(delegate
                 {
-                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi)?.UpdateLastError();
                 });
             }
             catch (Exception ex)
@@ -323,7 +310,7 @@ namespace SimHub.HomeAssistant.MQTT
 
                 Application.Current.Dispatcher.Invoke(delegate
                 {
-                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                    (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi)?.UpdateLastError();
                 });
             }
         }
@@ -333,7 +320,7 @@ namespace SimHub.HomeAssistant.MQTT
             Settings.LastError = "None";
             Application.Current.Dispatcher.Invoke(delegate
             {
-                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi)?.UpdateLastError();
             });
 
 
@@ -399,7 +386,7 @@ namespace SimHub.HomeAssistant.MQTT
 
             Application.Current.Dispatcher.Invoke(delegate
             {
-                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi).UpdateLastError();
+                (GetWPFSettingsControl(PluginManager) as SimHubHomeAssistantMqttPluginUi)?.UpdateLastError();
             });
 
             return Task.CompletedTask;
