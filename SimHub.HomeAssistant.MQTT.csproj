@@ -42,37 +42,37 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="GongSolutions.WPF.DragDrop">
-      <HintPath>$(SIMHUB_INSTALL_PATH)GongSolutions.WPF.DragDrop.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\GongSolutions.WPF.DragDrop.dll</HintPath>
     </Reference>
     <Reference Include="ICarsReader">
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\ICarsReader.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\ICarsReader.dll</HintPath>
     </Reference>
     <Reference Include="InputManagerCS, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SIMHUB_INSTALL_PATH)InputManagerCS.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\InputManagerCS.dll</HintPath>
     </Reference>
     <Reference Include="iRacingSDK, Version=1.13.8456.39470, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\Program Files (x86)\SimHub\iRacingSDK.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\iRacingSDK.dll</HintPath>
     </Reference>
     <Reference Include="log4net, Version=2.0.8.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SIMHUB_INSTALL_PATH)log4net.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\log4net.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MahApps.Metro, Version=1.5.0.23, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\MahApps.Metro.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Core">
-      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.Core.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\MahApps.Metro.IconPacks.Core.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.FontAwesome">
-      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.FontAwesome.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\MahApps.Metro.IconPacks.FontAwesome.dll</HintPath>
     </Reference>
     <Reference Include="MahApps.Metro.IconPacks.Material">
-      <HintPath>$(SIMHUB_INSTALL_PATH)MahApps.Metro.IconPacks.Material.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\MahApps.Metro.IconPacks.Material.dll</HintPath>
     </Reference>
     <Reference Include="MQTTnet, Version=4.3.3.952, Culture=neutral, PublicKeyToken=fdb7629f2e364a63, processorArchitecture=MSIL">
       <HintPath>packages\MQTTnet.4.3.3.952\lib\net48\MQTTnet.dll</HintPath>
@@ -82,17 +82,17 @@
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\Newtonsoft.Json.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="SimHub.Logging, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(SIMHUB_INSTALL_PATH)SimHub.Logging.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\SimHub.Logging.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SimHub.Plugins">
-      <HintPath>$(SIMHUB_INSTALL_PATH)SimHub.Plugins.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\SimHub.Plugins.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="System" />
@@ -108,10 +108,10 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
     <Reference Include="WoteverCommon">
-      <HintPath>$(SIMHUB_INSTALL_PATH)WoteverCommon.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\WoteverCommon.dll</HintPath>
     </Reference>
     <Reference Include="WoteverLocalization">
-      <HintPath>$(SIMHUB_INSTALL_PATH)WoteverLocalization.dll</HintPath>
+      <HintPath>$(SIMHUB_INSTALL_PATH)\WoteverLocalization.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
