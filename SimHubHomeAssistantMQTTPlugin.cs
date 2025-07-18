@@ -50,7 +50,7 @@ namespace SimHub.HomeAssistant.MQTT
         public string LeftMenuTitle => "HomeAssistant MQTT Publisher";
 
         private int _counter = 1;
-        private bool _iRacingAlreadyInitialized = false;
+        private bool _iRacingAlreadyInitialized;
 
         /// <summary>
         /// Called one time per game data update, contains all normalized game data,
@@ -294,7 +294,7 @@ namespace SimHub.HomeAssistant.MQTT
                 _configs = new Dictionary<string, BaseConfig>();
 
                 Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
-                Settings.LastError = ex.Message.ToString();
+                Settings.LastError = ex.Message;
 
                 Application.Current.Dispatcher.Invoke(delegate
                 {
@@ -306,7 +306,7 @@ namespace SimHub.HomeAssistant.MQTT
                 _configs = new Dictionary<string, BaseConfig>();
 
                 Logging.Current.Error($"[MQTT] Unable to connect to broker: {ex.Message}");
-                Settings.LastError = ex.Message.ToString();
+                Settings.LastError = ex.Message;
 
                 Application.Current.Dispatcher.Invoke(delegate
                 {
